@@ -25,12 +25,17 @@
     "apps/*"
   ],
   "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
+      "npm run lint:fix",
+      "npm run format"
     ]
   }
 }
