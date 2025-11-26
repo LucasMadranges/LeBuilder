@@ -1,10 +1,11 @@
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 import unusedImportsPlugin from 'eslint-plugin-unused-imports';
-import tseslint from '@typescript-eslint/eslint-plugin';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import globals from 'globals';
 
-const processEnv = typeof process !== 'undefined' ? process.env : { NODE_ENV: 'development' };
+const isProd = process?.env?.NODE_ENV === 'production';
 
 export default [
   // Fichiers à ignorer globalement
@@ -12,155 +13,91 @@ export default [
     ignores: [
       'node_modules/**',
       'dist/**',
-      'back/dist/**',
       'build/**',
       '.github/**',
       '*.md',
       '*.sql',
       'package-lock.json',
-      'front/.next/**',
       '.idea/**',
       '.husky/**',
+      '**/.next/**', // fix: ignorer correctement .next
     ],
   },
 
-  // Config commune JS/TS à tout le repo
+  // Base commune JS/TS
   {
     files: ['**/*.{js,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
+      parser: tsParser,
+      parserOptions: { ecmaFeatures: { jsx: true } },
       globals: {
+        ...globals.node,
         console: 'readonly',
         process: 'readonly',
       },
     },
     plugins: {
       prettier: prettierPlugin,
+      '@typescript-eslint': tsPlugin,
       'unused-imports': unusedImportsPlugin,
     },
     rules: {
-      'prettier/prettier': 'error',
-      'no-console': processEnv.NODE_ENV === 'production' ? 'warn' : 'off',
-      'no-debugger': processEnv.NODE_ENV === 'production' ? 'warn' : 'off',
-      'no-unused-vars': [
-        'warn',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-        },
-      ],
+      // Qualité
+      'no-console': isProd ? 'warn' : 'off',
+      'no-debugger': isProd ? 'warn' : 'off',
       'no-undef': 'error',
+
+      // Imports
       'unused-imports/no-unused-imports': 'error',
+
+      // Variables
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
+
+      // TS recommandé
+      '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
+
+      // Style via Prettier
+      'prettier/prettier': 'error',
     },
   },
 
-  // Backend (API / Node)
-  {
-    files: ['back/**/*.{js,ts,tsx}'],
-    languageOptions: {
-      globals: {
-        exports: 'readonly',
-        require: 'readonly',
-        process: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-      },
-    },
-    rules: {
-      'no-process-exit': 'off',
-    },
-  },
-
-  // Tests Jest du back
-  {
-    files: [
-      'back/**/__tests__/**/*.{js,ts,tsx}',
-      'back/**/*.test.{js,ts,tsx}',
-      'back/**/*.spec.{js,ts,tsx}',
-    ],
-    languageOptions: {
-      globals: {
-        jest: 'readonly',
-        describe: 'readonly',
-        it: 'readonly',
-        test: 'readonly',
-        expect: 'readonly',
-        beforeEach: 'readonly',
-        beforeAll: 'readonly',
-        afterEach: 'readonly',
-        afterAll: 'readonly',
-        vi: 'readonly',
-        vitest: 'readonly',
-      },
-    },
-  },
-
-  // Frontend (navigateur)
-  {
-    files: ['front/**/*.{js,ts,tsx}'],
-    languageOptions: {
-      globals: {
-        document: 'readonly',
-        window: 'readonly',
-        fetch: 'readonly',
-      },
-    },
-    rules: {
-      'no-alert': 'warn',
-    },
-  },
-
-  // JS à la racine (ex: config)
+  // Scripts à la racine (config / tooling)
   {
     files: ['*.{js,ts,tsx}'],
     languageOptions: {
       globals: {
+        ...globals.node,
         module: 'readonly',
         exports: 'readonly',
         require: 'readonly',
-        process: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
       },
     },
   },
 
-  // TypeScript strict, sélectionne le tsconfig selon le sous-dossier
+  // Apps (Next.js / Expo React Native)
   {
-    files: ['front/**/*.ts', 'front/**/*.tsx'],
+    files: ['apps/*/**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        project: ['./front/tsconfig.json'],
-        tsconfigRootDir: process.cwd(),
-        ecmaVersion: 2022,
-        sourceType: 'module',
+      // Ajoute les globals browser pour éviter no-undef sur alert, window, etc.
+      globals: {
+        ...globals.node,
+        ...globals.browser,
       },
     },
-    plugins: { '@typescript-eslint': tseslint },
     rules: {
-      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/no-explicit-any': isProd ? 'warn' : 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
     },
   },
 
-  {
-    files: ['back/**/*.ts', 'back/**/*.tsx'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        project: ['./back/tsconfig.json'],
-        tsconfigRootDir: process.cwd(),
-        ecmaVersion: 2022,
-        sourceType: 'module',
-      },
-    },
-    plugins: { '@typescript-eslint': tseslint },
-    rules: {
-      ...tseslint.configs.recommended.rules,
-    },
-  },
-
-  // Intégration de Prettier à la fin (toujours après tout le reste !)
+  // Prettier en dernier
   prettierConfig,
 ];
