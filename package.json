@@ -22,7 +22,9 @@
     "prettier": "^3.5.3"
   },
   "workspaces": [
-    "apps/*"
+    "apps/admin",
+    "apps/commandes",
+    "apps/bornes"
   ],
   "scripts": {
     "lint": "eslint .",

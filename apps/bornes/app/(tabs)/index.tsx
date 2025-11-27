@@ -1,38 +1,24 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import Burger from '@/assets/food/burger.png';
+import { useDb } from '@/hooks/use-db';
 
 export default function HomeScreen() {
+  const items = useDb();
+
   return (
     <ScrollView style={styles.pages} contentInsetAdjustmentBehavior="automatic">
       <View style={styles.container}>
-        <Pressable style={styles.card}>
-          <View style={styles.imageContainer}>
-            <Image source={Burger} style={{ width: 150, height: 150 }} />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardText}>La Base (M)</Text>
-            <Text style={styles.cardText}>15,95€</Text>
-          </View>
-        </Pressable>
-        <Pressable style={styles.card}>
-          <View style={styles.imageContainer}>
-            <Image source={Burger} style={{ width: 150, height: 150 }} />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardText}>Le Banquet (L)</Text>
-            <Text style={styles.cardText}>17,95€</Text>
-          </View>
-        </Pressable>
-        <Pressable style={styles.card}>
-          <View style={styles.imageContainer}>
-            <Image source={Burger} style={{ width: 150, height: 150 }} />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardText}>La Festin (XL)</Text>
-            <Text style={styles.cardText}>18,95€</Text>
-          </View>
-        </Pressable>
+        {items.map(item => (
+          <Pressable style={styles.card} key={item.id}>
+            <View style={styles.imageContainer}>
+              <Image source={item.img} style={{ width: 150, height: 150 }} />
+            </View>
+            <View style={styles.cardContent}>
+              <Text style={styles.cardText}>{item.name}</Text>
+              <Text style={styles.cardText}>{item.price}</Text>
+            </View>
+          </Pressable>
+        ))}
       </View>
     </ScrollView>
   );
