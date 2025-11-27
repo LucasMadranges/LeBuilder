@@ -27,7 +27,7 @@ export default function TabsLayout() {
           style={[styles.navItem, isActive('index') && styles.navItemActive]}
           onPress={() => goTo('index')}
         >
-          <Text style={styles.navText}>Home</Text>
+          <Text style={styles.navText}>Accueil</Text>
         </Pressable>
 
         <Pressable
@@ -112,7 +112,7 @@ export default function TabsLayout() {
           <Tabs.Screen name="naan" options={{ title: 'Naan' }} />
           <Tabs.Screen name="ptites-faim" options={{ title: "P'tites faim" }} />
           <Tabs.Screen name="boissons" options={{ title: 'Boissons' }} />
-          <Tabs.Screen name="dessert" options={{ title: 'Dessert' }} />
+          <Tabs.Screen name="desserts" options={{ title: 'Desserts' }} />
         </Tabs>
       </View>
     </View>
